@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steam Game Journal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap');
+:root{
+  --bg:#0b1018;--panel:#121a25;--panel2:#172230;--line:#263547;
+  --text:#eef4fb;--muted:#91a0b4;--accent:#66c0f4;--accent2:#1b9fff;
+  --green:#5ee6a8;--yellow:#ffd166;--red:#ff6b7a;--shadow:0 18px 50px #0007;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Vazirmatn,Arial,sans-serif;background:
+radial-gradient(circle at 15% 0%,#16304a 0,transparent 32%),
+radial-gradient(circle at 90% 10%,#172a40 0,transparent 28%),var(--bg);color:var(--text);min-height:100vh}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{max-width:1400px;margin:auto;padding:26px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:26px}
+.brand{display:flex;align-items:center;gap:13px}
+.logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#66c0f4,#1b75bb);display:grid;place-items:center;font-size:25px;box-shadow:0 10px 30px #168de755}
+.brand h1{font-size:21px;margin:0}.brand span{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:10px}
+.btn{border:1px solid var(--line);background:#172231;color:var(--text);padding:11px 16px;border-radius:12px}
+.btn:hover{background:#203044}.btn.primary{background:linear-gradient(135deg,#1d9bf0,#1265a5);border:0}
+.hero{display:grid;grid-template-columns:1.5fr .5fr;gap:18px;margin-bottom:18px}
+.heroCard,.stat,.toolbar,.card{background:linear-gradient(180deg,#141e2b,#101822);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+.heroCard{padding:25px}.heroCard h2{margin:0 0 7px;font-size:28px}.heroCard p{margin:0;color:var(--muted);line-height:1.8}
+.overall{display:flex;align-items:center;justify-content:center;gap:12px;padding:20px}.bigScore{font-size:45px;font-weight:800;color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat{padding:17px}.stat small{color:var(--muted)}.stat strong{display:block;font-size:26px;margin-top:6px}
+.toolbar{padding:13px;display:flex;gap:10px;align-items:center;margin-bottom:18px}
+.search{flex:1;background:#0c141e;border:1px solid var(--line);color:var(--text);padding:12px 14px;border-radius:12px;outline:none}
+select{background:#0c141e;color:var(--text);border:1px solid var(--line);padding:12px;border-radius:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{overflow:hidden;transition:.2s;position:relative}
+.statusPill,.tierPill{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-top:7px}
+.status-playing{background:#143a2c;color:#63e6a8}.status-completed{background:#15344a;color:#66c0f4}.status-wishlist{background:#342d15;color:#ffd166}.status-dropped{background:#3a1920;color:#ff7b88}.status-notstarted{background:#242c36;color:#aeb9c7}
+.tierS{background:#4a1d32;color:#ff82ad}.tierA{background:#173d38;color:#63e6a8}.tierB{background:#17374d;color:#66c0f4}.tierC{background:#3d3517;color:#ffd166}.tierD{background:#3b2024;color:#ff8792}
+.metaRow{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}.statLine{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px;margin-top:10px}.statLine b{color:#dce7f3}
+.detailBtn{width:100%;margin-top:12px}
+.detailModal .modalBox{width:min(900px,100%)}
+.detailGrid{display:grid;grid-template-columns:280px 1fr;gap:22px}.detailCover{height:auto;aspect-ratio:16/9;position:relative;border-radius:16px;overflow:hidden;background:#172536;display:grid;place-items:center;font-size:65px;color:#5d7891}.detailCover img{display:block;width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.detailInfo h2{margin:0 0 5px;font-size:28px}.detailNote{color:#bdc9d7;line-height:1.9;font-size:13px;margin-top:18px}
+.reviewBoxes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.reviewBox{padding:13px;border:1px solid #27384b;background:#0d1620;border-radius:14px}.reviewBox h4{margin:0 0 8px;font-size:12px}.reviewBox p{margin:0;color:#b8c5d4;font-size:12px;line-height:1.8}
+.radarWrap{margin-top:18px;padding:15px;border:1px solid #27384b;background:#0d1620;border-radius:16px;text-align:center}.radarWrap canvas{max-width:100%;height:auto}
+
+.favoriteBtn{border:1px solid var(--line);background:#101923;color:#91a0b4;border-radius:12px;padding:7px 10px;cursor:pointer;font-size:16px;transition:.2s}.favoriteBtn:hover{border-color:#66c0f4;color:#fff}.favoriteBtn.active{color:#ffd166;border-color:#8b6d25;background:#2a2414}
+.dashboard{margin-bottom:18px}.dashGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.dashCard{background:linear-gradient(180deg,#141e2b,#101822);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}.dashCard h3{margin:0 0 12px;font-size:15px}.dashBig{font-size:25px;font-weight:800;color:var(--accent)}.dashList{display:grid;gap:9px}.dashLine{display:grid;grid-template-columns:110px 1fr 38px;gap:8px;align-items:center;font-size:12px}.dashBar{height:8px;background:#0b1119;border-radius:99px;overflow:hidden}.dashBar i{display:block;height:100%;background:linear-gradient(90deg,#1b9fff,#66c0f4);border-radius:99px}.dashWide{grid-column:span 2}.favStat{color:#ffd166!important}
+@media(max-width:1000px){.dashGrid{grid-template-columns:1fr 1fr}.dashWide{grid-column:span 2}}
+@media(max-width:800px){.detailGrid{grid-template-columns:1fr}.detailCover{height:auto;aspect-ratio:16/9}.reviewBoxes{grid-template-columns:1fr}}.card:hover{transform:translateY(-3px);border-color:#3d5874}
+.cover{height:auto;aspect-ratio:16/9;background:linear-gradient(135deg,#172b40,#0e1722);display:grid;place-items:center;color:#5e7790;font-size:42px;position:relative}
+.cover img{display:block;width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.scoreBadge{display:inline-flex;align-items:center;white-space:nowrap;background:#0b1520;border:1px solid #ffffff22;padding:3px 7px;border-radius:7px;font-size:11px;font-weight:800;color:var(--accent);flex-shrink:0}.cover .scoreBadge{display:none}
+.cardBody{padding:16px}.titleRow{display:flex;justify-content:space-between;gap:8px;align-items:center}.title{font-size:18px;font-weight:800}.genre{font-size:11px;color:var(--muted);margin-top:4px}
+.bars{margin-top:14px;display:grid;gap:8px}.barLine{display:grid;grid-template-columns:90px 1fr 35px;gap:8px;align-items:center;font-size:11px;color:var(--muted)}
+.bar{height:6px;background:#263344;border-radius:20px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#3a9ee9,#66c0f4);border-radius:20px}
+.note{color:#b9c4d2;font-size:12px;line-height:1.8;margin:14px 0 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cardFooter{display:flex;justify-content:space-between;align-items:center;margin-top:15px;border-top:1px solid #223040;padding-top:12px}
+.mini{font-size:11px;color:var(--muted)}.icons{display:flex;gap:6px}.iconBtn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:#111b26;color:#c9d6e5}
+.empty{grid-column:1/-1;text-align:center;padding:70px 20px;color:var(--muted);border:1px dashed #304256;border-radius:18px}
+.modal{position:fixed;inset:0;background:#03070ccc;backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal.show{display:flex}.modalBox{width:min(760px,100%);max-height:92vh;overflow:auto;background:#121b27;border:1px solid #304256;border-radius:22px;box-shadow:0 30px 100px #000b;padding:24px}
+.modalHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modalHead h3{margin:0;font-size:22px}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field.full{grid-column:1/-1}
+label{display:block;font-size:12px;color:#a9b8ca;margin-bottom:7px}
+input,textarea{width:100%;background:#0b131d;border:1px solid #2b3b4f;color:var(--text);border-radius:11px;padding:11px;outline:none}
+textarea{min-height:105px;resize:vertical}
+.ratingSection{margin-top:20px;padding:16px;border:1px solid #27384b;border-radius:16px;background:#0e1722}
+.ratingHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.ratingHead span{color:var(--muted);font-size:12px}
+.ratingRow{display:grid;grid-template-columns:110px 1fr 45px;align-items:center;gap:10px;margin:12px 0;font-size:12px}
+input[type=range]{padding:0;accent-color:#55b9f4}
+.modalFoot{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+
+.favoriteBtn{border:1px solid var(--line);background:#101923;color:#91a0b4;border-radius:12px;padding:7px 10px;cursor:pointer;font-size:16px;transition:.2s}.favoriteBtn:hover{border-color:#66c0f4;color:#fff}.favoriteBtn.active{color:#ffd166;border-color:#8b6d25;background:#2a2414}
+.dashboard{margin-bottom:18px}.dashGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.dashCard{background:linear-gradient(180deg,#141e2b,#101822);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}.dashCard h3{margin:0 0 12px;font-size:15px}.dashBig{font-size:25px;font-weight:800;color:var(--accent)}.dashList{display:grid;gap:9px}.dashLine{display:grid;grid-template-columns:110px 1fr 38px;gap:8px;align-items:center;font-size:12px}.dashBar{height:8px;background:#0b1119;border-radius:99px;overflow:hidden}.dashBar i{display:block;height:100%;background:linear-gradient(90deg,#1b9fff,#66c0f4);border-radius:99px}.dashWide{grid-column:span 2}.favStat{color:#ffd166!important}
+@media(max-width:1000px){.dashGrid{grid-template-columns:1fr 1fr}.dashWide{grid-column:span 2}}
+@media(max-width:800px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.toolbar{flex-wrap:wrap}.search{min-width:100%}.formGrid{grid-template-columns:1fr}.field.full{grid-column:auto}.dashGrid{grid-template-columns:1fr}.dashWide{grid-column:auto}}
+
+.favoritesSection{margin:22px 0 30px;padding:22px;border:1px solid rgba(255,255,255,.08);border-radius:20px;background:rgba(18,22,30,.72);box-shadow:0 12px 35px rgba(0,0,0,.16)}
+.sectionTitle{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}
+.sectionTitle h2{margin:0 0 5px;font-size:22px}
+.sectionTitle span{color:#9ca3af;font-size:13px}
+.ghostBtn{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#ddd;border-radius:10px;padding:9px 13px;cursor:pointer}
+.emptyFavorites{display:none;text-align:center;color:#8b93a1;padding:28px 10px;border:1px dashed rgba(255,255,255,.1);border-radius:14px}
+.favoritesSection .grid{margin-top:0}
+
+/* Gaming stats dashboard inspired by the provided reference */
+.gamingDashboard{margin:0 0 22px;direction:ltr;color:#f5f7fb}
+.gamingDashHead{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
+.gamingDashBrand{display:flex;align-items:flex-start;gap:14px}
+.gamingDashMark{font-size:34px;line-height:1;color:#9b5cff}
+.gamingDashHead h2{margin:0;font-size:27px;line-height:1.2;color:#f5f7fb}
+.gamingDashHead p{margin:9px 0 0;color:#9ca8bd;font-size:16px}
+.gamingDashRefresh{border:1px solid #30394d;background:transparent;color:#f3f5fa;border-radius:10px;padding:12px 16px;display:flex;gap:10px;align-items:center}
+.gamingDashRefresh:hover{background:#151d2d}
+.gamingQuickStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;margin-bottom:26px}
+.gamingQuickCard{min-height:122px;border:1px solid #293249;border-radius:12px;background:#131a2b;padding:20px 18px;display:flex;align-items:center;gap:18px;direction:ltr}
+.gamingQuickIcon{width:72px;height:72px;border-radius:13px;display:grid;place-items:center;font-size:34px;flex-shrink:0}
+.gamingQuickIcon.purple{background:#43209a;color:#c7a5ff}.gamingQuickIcon.blue{background:#193f8f;color:#78b7ff}.gamingQuickIcon.gold{background:#80500c;color:#ffd16d}.gamingQuickIcon.green{background:#12552f;color:#5be69a}
+.gamingQuickValue{font-size:37px;font-weight:800;line-height:1.1;color:#f6f7fb;overflow-wrap:anywhere}
+.gamingQuickLabel{font-size:16px;color:#9da8bc;margin-top:7px}
+.gamingDashPanels{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+.gamingPanel{min-height:350px;border:1px solid #293249;border-radius:12px;background:#131a2b;padding:30px 36px;direction:ltr}
+.gamingPanel h3{font-size:22px;margin:0;color:#f4f6fb;display:flex;align-items:center;gap:12px}
+.gamingPanelSub{font-size:16px;color:#9da8bc;margin-top:7px}
+.completionBar{height:24px;border-radius:20px;background:#343d50;overflow:hidden;display:flex;margin:38px 0 26px}
+.completionBar span{height:100%;display:block;min-width:0}
+.completionLegend{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px}
+.completionLegendItem{display:flex;align-items:center;gap:12px;color:#9da8bc;font-size:15px}
+.legendDot{width:18px;height:18px;border-radius:50%;display:inline-block;flex-shrink:0}
+.mostPlayedList{display:grid;gap:14px;margin-top:30px}
+.mostPlayedRow{display:grid;grid-template-columns:26px 60px minmax(0,1fr) auto;gap:14px;align-items:center;min-width:0}
+.mostPlayedRank{color:#9da8bc;font-size:17px}
+.mostPlayedCover{width:60px;height:60px;border-radius:8px;overflow:hidden;background:#202a3b;display:grid;place-items:center;color:#8b9ab0;font-size:22px}
+.mostPlayedCover img{width:100%;height:100%;object-fit:cover;display:block}
+.mostPlayedName{font-size:15px;color:#f0f3fa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mostPlayedHours{font-size:16px;color:#70a9ff;font-weight:700;white-space:nowrap}
+@media(max-width:1050px){.gamingQuickStats{gap:12px}.gamingQuickCard{padding:15px;gap:12px}.gamingQuickIcon{width:56px;height:56px;font-size:27px}.gamingQuickValue{font-size:30px}.gamingDashPanels{gap:16px}.gamingPanel{padding:24px}}
+@media(max-width:760px){.gamingDashHead h2{font-size:22px}.gamingDashHead p{font-size:13px}.gamingQuickStats{grid-template-columns:1fr 1fr}.gamingQuickCard{min-height:95px}.gamingQuickIcon{width:46px;height:46px;font-size:23px}.gamingQuickValue{font-size:25px}.gamingQuickLabel{font-size:12px}.gamingDashPanels{grid-template-columns:1fr}.gamingPanel{min-height:0;padding:22px}.completionLegend{gap:14px}.completionLegendItem{font-size:13px}.mostPlayedRow{grid-template-columns:20px 48px minmax(0,1fr) auto;gap:10px}.mostPlayedCover{width:48px;height:48px}.mostPlayedName{font-size:13px}.mostPlayedHours{font-size:13px}}
+
+
+/* Added personal gaming profile, hall of fame, visual archive, and dedicated game page */
+.insightSection{margin:24px 0;padding:22px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,#121b29,#0e151f);box-shadow:var(--shadow)}
+.insightHead{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:18px}.insightHead h2{margin:0;font-size:21px}.insightHead p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.insightGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.insightPanel{min-width:0;padding:18px;border:1px solid #26384b;border-radius:16px;background:#0d1621}.insightPanel h3{margin:0 0 14px;font-size:15px}
+.profileSummary{display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px;align-items:center}.profileScore{display:grid;place-items:center;min-height:180px;border-radius:16px;background:radial-gradient(circle at center,#1a3650,#101923 68%);border:1px solid #29445a}.profileScore strong{font-size:40px;color:var(--accent);line-height:1}.profileScore span{color:var(--muted);font-size:12px}.profileBars{display:grid;gap:10px}.profileBarRow{display:grid;grid-template-columns:115px minmax(0,1fr) 30px;gap:8px;align-items:center;font-size:11px;color:#aebdd0}.profileBar{height:8px;border-radius:20px;background:#253244;overflow:hidden}.profileBar i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#2479bb,#66c0f4)}
+.hallGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.hallCard{border:1px solid #2a3a4d;background:#111b28;border-radius:14px;overflow:hidden;cursor:pointer;transition:.2s;min-width:0}.hallCard:hover{transform:translateY(-3px);border-color:#66c0f4}.hallCover{height:auto;aspect-ratio:16/9;background:#172536;display:grid;place-items:center;overflow:hidden;color:#69839d}.hallCover img{width:100%;height:100%;object-fit:cover;display:block}.hallInfo{padding:11px}.hallLabel{font-size:10px;color:#ffd166;margin-bottom:5px}.hallName{font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hallMeta{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px;margin-top:7px}
+.archiveHeading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 12px}.archiveHeading h2{margin:0;font-size:21px}.archiveHeading span{font-size:12px;color:var(--muted)}
+.detailModal{padding:0;background:#070c14f5;backdrop-filter:blur(14px);align-items:stretch;justify-content:stretch}.detailModal .modalBox{width:100%;max-width:none;max-height:100vh;height:100vh;overflow:auto;border:0;border-radius:0;padding:clamp(18px,4vw,52px);background:radial-gradient(circle at 15% 0%,#17314a 0,transparent 35%),#0b111a;box-shadow:none}.detailModal .modalHead{max-width:1400px;margin:0 auto 24px}.detailModal #detailContent{max-width:1400px;margin:0 auto}.detailHero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:26px;align-items:stretch}.detailHeroArt{position:relative;aspect-ratio:16/9;min-height:280px;border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#172b40,#0e1722);border:1px solid #304256;display:grid;place-items:center;font-size:70px}.detailHeroArt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.detailHeroShade{position:absolute;inset:35% 0 0;background:linear-gradient(transparent,#070c14e8)}.detailHeroTitle{position:absolute;z-index:1;bottom:22px;left:24px;right:24px}.detailHeroTitle h2{margin:0;font-size:clamp(25px,4vw,42px);text-shadow:0 3px 18px #000}.detailHeroTitle p{margin:7px 0 0;color:#d0dbe8}.detailScorePanel{border:1px solid #2a3b4f;border-radius:22px;padding:25px;background:linear-gradient(160deg,#141f2d,#0e1621);display:flex;flex-direction:column;justify-content:center}.detailScoreBig{font-size:54px;font-weight:800;color:var(--accent);line-height:1.1}.detailScoreBig small{font-size:17px;color:var(--muted)}.detailActionRow{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.detailBodyGrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:20px;margin-top:22px}.detailMetricList{display:grid;gap:12px}.detailMetric{display:grid;grid-template-columns:130px minmax(0,1fr) 35px;gap:10px;align-items:center;font-size:12px;color:#bdc9d7}.detailMetric .bar{height:8px}.detailLongText{color:#bdc9d7;font-size:13px;line-height:1.9;white-space:pre-wrap}.detailHero .favoriteBtn{align-self:flex-start;margin-top:14px}
+@media(max-width:800px){.insightGrid,.profileSummary,.detailHero,.detailBodyGrid{grid-template-columns:1fr}.profileScore{min-height:130px}.hallGrid{grid-template-columns:1fr 1fr}.detailHeroArt{min-height:200px}.detailModal .modalBox{padding:16px}.detailMetric{grid-template-columns:105px minmax(0,1fr) 28px}}
+@media(max-width:480px){.hallGrid{grid-template-columns:1fr}.insightSection{padding:14px}.insightHead{align-items:flex-start;flex-direction:column}.profileBarRow{grid-template-columns:95px minmax(0,1fr) 26px}}
+
+
+/* Detail page polish and resilient summary values */
+.stats .stat{min-height:112px;display:flex;flex-direction:column;justify-content:center;gap:5px;position:relative;overflow:hidden}
+.stats .stat:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#66c0f4,#1b75bb);opacity:.8}
+.stats .stat strong{line-height:1.35;overflow-wrap:anywhere}
+.detailHeroArt{box-shadow:0 20px 55px #0006}
+.detailScorePanel{box-shadow:0 20px 55px #0003}
+.detailHeroTitle h2{overflow-wrap:anywhere}
+.detailActionRow .btn,.detailActionRow .favoriteBtn{min-height:40px}
+@media(max-width:620px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stats .stat{min-width:0;padding:14px}.stats .stat strong{font-size:21px}.detailMetric{grid-template-columns:95px minmax(0,1fr) 28px}.detailHeroArt{min-height:180px}}
+
+
+/* Backlog planner */
+.plannerSection{margin:22px 0 28px;padding:22px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,#121d2a,#0c131d);box-shadow:var(--shadow)}
+.plannerHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}.plannerHead h2{margin:0 0 6px;font-size:21px}.plannerHead p{margin:0;color:var(--muted);font-size:13px;line-height:1.8}
+.plannerAdd{display:grid;grid-template-columns:minmax(180px,2fr) minmax(130px,1fr) minmax(145px,1fr) auto;gap:10px;margin-bottom:18px}.plannerAdd select,.plannerAdd input,.planControls select,.planControls input{width:100%;min-width:0;background:#0b1420;border:1px solid #2b3d52;color:#eef4fb;padding:11px 12px;border-radius:11px;font:inherit}
+.plannerStats{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:15px}.plannerStat{padding:8px 12px;border-radius:10px;background:#0b1420;border:1px solid #26384c;color:var(--muted);font-size:12px}.plannerStat b{color:var(--text);margin-inline-start:5px}
+.planList{display:grid;gap:10px}.planItem{display:grid;grid-template-columns:100px minmax(120px,1fr) minmax(230px,1.1fr);gap:14px;align-items:center;padding:12px;border:1px solid #26384c;background:#0b1420;border-radius:14px}.planItem img{width:100px;aspect-ratio:16/9;object-fit:cover;border-radius:9px;background:#172536}.planTitle{font-weight:800;overflow-wrap:anywhere}.planSub{font-size:11px;color:var(--muted);margin-top:4px}.planPriority{display:inline-block;padding:3px 7px;border-radius:7px;font-size:10px;margin-top:7px}.priority-high{color:#ff9da6;background:#451e28}.priority-medium{color:#ffd166;background:#3b3218}.priority-low{color:#75d9b0;background:#16352b}.planControls{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;align-items:center}.planControls button{border:1px solid #33475d;background:#172536;color:var(--text);border-radius:9px;padding:9px 10px}.planEmpty{padding:22px;text-align:center;border:1px dashed #2b3d52;border-radius:14px;color:var(--muted);line-height:1.9}
+@media(max-width:760px){.plannerAdd{grid-template-columns:1fr 1fr}.plannerAdd select:first-child{grid-column:1/-1}.planItem{grid-template-columns:78px minmax(0,1fr)}.planItem img{width:78px}.planControls{grid-column:1/-1;grid-template-columns:1fr 1fr auto}.plannerHead{flex-direction:column}}
+
+</style>
+<style>
+/* Refined dedicated game page: compact, editorial and consistent with the main archive */
+.detailModal{padding:24px 16px;align-items:center;justify-content:center;background:rgba(3,8,15,.82);backdrop-filter:blur(10px)}
+.detailModal .modalBox{width:min(1080px,100%);max-width:1080px;height:auto;max-height:calc(100vh - 48px);overflow:auto;border:1px solid #2b3b50;border-radius:22px;padding:clamp(16px,2.4vw,30px);background:linear-gradient(145deg,#111c2a,#0b121c 72%);box-shadow:0 28px 100px #0009}
+.detailModal .modalHead{max-width:none;margin:0 0 18px;padding-bottom:14px;border-bottom:1px solid #26374a}
+.detailModal .modalHead h3{font-size:18px}
+.detailModal #detailContent{max-width:none;margin:0}
+.detailHero{grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:16px}
+.detailHeroArt{aspect-ratio:16/9;min-height:0;border-radius:17px;border:1px solid #2b3b50;box-shadow:none}
+.detailHeroShade{inset:25% 0 0;background:linear-gradient(transparent 10%,#070c14ed)}
+.detailHeroTitle{left:20px;right:20px;bottom:18px}
+.detailHeroTitle h2{font-size:clamp(23px,3vw,34px);line-height:1.25}
+.detailHeroTitle p{font-size:12px;color:#d0dbe8}
+.detailScorePanel{border-radius:17px;padding:20px;background:#111b28;box-shadow:none;justify-content:flex-start}
+.detailScoreBig{font-size:46px;margin:5px 0 8px}
+.detailScorePanel .radarWrap{margin-top:8px;padding:10px;background:#0b1420;border:1px solid #233448;border-radius:13px}
+.detailScorePanel .radarWrap canvas{max-height:190px;width:100%}
+.detailActionRow{margin-top:auto;padding-top:14px;gap:8px}
+.detailActionRow .btn,.detailActionRow .favoriteBtn{font-size:12px;padding:9px 12px;min-height:38px}
+.detailBodyGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px}
+.detailBodyGrid .insightPanel{padding:17px;border-radius:15px;background:#111b28;border:1px solid #26384c}
+.detailBodyGrid .insightPanel h3{font-size:15px;margin:0 0 15px}
+.detailMetricList{gap:14px}
+.detailMetric{grid-template-columns:minmax(95px,125px) minmax(0,1fr) 30px;font-size:12px;gap:9px}
+.detailMetric .bar{height:7px;background:#243448;border-radius:99px;overflow:hidden}
+.detailLongText{font-size:13px;line-height:1.85}
+.reviewBoxes{gap:10px}
+.reviewBox{border-radius:13px;padding:14px;background:#111b28;border:1px solid #26384c}
+.reviewBox h4{margin:0 0 8px;font-size:13px}
+.reviewBox p{margin:0;color:#c4cfdd;font-size:12px;line-height:1.8;white-space:pre-wrap}
+@media(max-width:800px){.detailModal{padding:10px}.detailModal .modalBox{max-height:calc(100vh - 20px);border-radius:16px;padding:14px}.detailHero,.detailBodyGrid{grid-template-columns:1fr}.detailScorePanel{padding:16px}.detailScorePanel .radarWrap canvas{max-height:220px}.detailActionRow{margin-top:12px}.detailHeroArt{min-height:0}.detailHeroTitle{left:14px;right:14px;bottom:13px}}
+
+/* Game comparison */
+.compareSection{margin:22px 0 28px;padding:22px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,#121d2a,#0c131d);box-shadow:var(--shadow)}
+.compareHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px}
+.compareHead h2{margin:0 0 6px;font-size:21px}.compareHead p{margin:0;color:var(--muted);font-size:13px}
+.comparePickers{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:20px}
+.comparePickers select{width:100%;min-width:0;padding:13px 14px;border-radius:12px;background:#0b1420;border:1px solid #2b3d52;color:#eef4fb;font:inherit}
+.compareVs{color:var(--accent);font-weight:900;font-size:13px}
+.compareResults{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.compareGame{padding:16px;border-radius:15px;background:#0b1420;border:1px solid #26384c;display:flex;gap:13px;align-items:center;min-width:0}
+.compareGame img{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#172536;flex-shrink:0}
+.compareGame h3{margin:0 0 5px;font-size:16px;overflow-wrap:anywhere}.compareGame .compareScore{font-size:25px;font-weight:850;color:var(--accent)}
+.compareGame small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.compareMetrics{margin-top:18px;display:grid;gap:13px}
+.compareMetric{display:grid;grid-template-columns:minmax(90px,150px) minmax(0,1fr) 34px;gap:12px;align-items:center;font-size:12px}
+.compareTrack{height:10px;display:flex;gap:3px;align-items:stretch}
+.compareTrack span{display:block;height:100%;border-radius:99px;min-width:2px}
+.compareTrack .left{background:linear-gradient(90deg,#2878c7,#66c0f4)}.compareTrack .right{background:linear-gradient(90deg,#7857d8,#b29aff)}
+.compareMetric b{text-align:center;font-size:12px}
+.compareLegend{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:14px}
+.compareLegend span{display:inline-flex;align-items:center;gap:7px}.compareLegend i{width:9px;height:9px;border-radius:50%;display:inline-block}.compareLegend .l{background:#66c0f4}.compareLegend .r{background:#a58aff}
+.compareEmpty{padding:24px;text-align:center;border:1px dashed #2b3d52;border-radius:14px;color:var(--muted)}
+@media(max-width:650px){.compareSection{padding:15px}.comparePickers{grid-template-columns:1fr;gap:8px}.compareVs{text-align:center}.compareResults{grid-template-columns:1fr}.compareGame img{width:95px}.compareMetric{grid-template-columns:95px minmax(0,1fr) 30px;gap:7px}.compareHead{flex-direction:column}}
+
+
+/* Theme presets */
+:root[data-theme="purple"]{--bg:#100a1b;--panel:#1a1028;--panel2:#241538;--line:#49305f;--text:#f8f0ff;--muted:#b4a0c9;--accent:#d69bff;--accent2:#a855f7;--green:#71f5cb;--yellow:#ffe18a;--shadow:0 18px 50px #05000c99}
+:root[data-theme="aurora"]{--bg:#061713;--panel:#0c211c;--panel2:#123128;--line:#245548;--text:#eafff6;--muted:#92b9aa;--accent:#69f5bd;--accent2:#14c98b;--green:#8affc8;--yellow:#f5ef91;--shadow:0 18px 50px #00130e99}
+:root[data-theme="yellow"]{--bg:#171208;--panel:#241b0b;--panel2:#30230d;--line:#5c451b;--text:#fff8e7;--muted:#c4b38d;--accent:#ffd65a;--accent2:#f5a900;--green:#8ce5a7;--yellow:#ffe17d;--shadow:0 18px 50px #0d080099}
+:root[data-theme="blue"]{color-scheme:dark}
+:root[data-theme="purple"] body{background:radial-gradient(circle at 15% 0%,#47205f 0,transparent 32%),radial-gradient(circle at 90% 10%,#2b1a50 0,transparent 28%),var(--bg)}
+:root[data-theme="aurora"] body{background:radial-gradient(circle at 15% 0%,#104b3b 0,transparent 32%),radial-gradient(circle at 90% 10%,#123c37 0,transparent 28%),var(--bg)}
+:root[data-theme="yellow"] body{background:radial-gradient(circle at 15% 0%,#5b3c0b 0,transparent 32%),radial-gradient(circle at 90% 10%,#3d2b08 0,transparent 28%),var(--bg)}
+:root[data-theme="purple"] .logo,:root[data-theme="purple"] .btn.primary{background:linear-gradient(135deg,#d69bff,#7835c7)}
+:root[data-theme="aurora"] .logo,:root[data-theme="aurora"] .btn.primary{background:linear-gradient(135deg,#69f5bd,#087e64)}
+:root[data-theme="yellow"] .logo,:root[data-theme="yellow"] .btn.primary{background:linear-gradient(135deg,#ffe17d,#c47b00)}
+:root[data-theme="purple"] .mainTab.active,:root[data-theme="purple"] .mainTabs{border-color:#69418a}
+:root[data-theme="aurora"] .mainTab.active,:root[data-theme="aurora"] .mainTabs{border-color:#2f8069}
+:root[data-theme="yellow"] .mainTab.active,:root[data-theme="yellow"] .mainTabs{border-color:#8a681f}
+:root[data-theme="purple"] .bar .fill,:root[data-theme="purple"] .dashBar i,:root[data-theme="purple"] .profileBar i{background:linear-gradient(90deg,#a855f7,#e0b5ff)}
+:root[data-theme="aurora"] .bar .fill,:root[data-theme="aurora"] .dashBar i,:root[data-theme="aurora"] .profileBar i{background:linear-gradient(90deg,#10b981,#8affc8)}
+:root[data-theme="yellow"] .bar .fill,:root[data-theme="yellow"] .dashBar i,:root[data-theme="yellow"] .profileBar i{background:linear-gradient(90deg,#f5a900,#ffe17d)}
+.themeSettings{background:linear-gradient(145deg,var(--panel),var(--bg));border:1px solid var(--line);border-radius:22px;padding:clamp(18px,3vw,30px);box-shadow:var(--shadow)}
+.themeSettingsHead{display:flex;gap:14px;align-items:center;margin-bottom:22px}.themeSettingsIcon{width:52px;height:52px;display:grid;place-items:center;border:1px solid var(--line);border-radius:16px;background:var(--panel2);font-size:26px}.themeSettingsHead h2{margin:0 0 4px}.themeSettingsHead p{margin:0;color:var(--muted);font-size:13px;line-height:1.8}
+.themeOptions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.themeOption{--swatch1:#66c0f4;--swatch2:#1b9fff;position:relative;display:flex;align-items:center;gap:14px;text-align:right;padding:16px;border:1px solid var(--line);border-radius:17px;background:var(--panel);color:var(--text);min-height:94px;transition:transform .25s,border-color .25s,box-shadow .25s}.themeOption:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 12px 28px #0003}.themeOption.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 25px color-mix(in srgb,var(--accent) 18%,transparent)}.themeOption .themeSwatches{display:flex;flex-direction:column;gap:5px;flex-shrink:0}.themeOption .themeSwatches i{display:block;width:42px;height:20px;border-radius:7px;background:linear-gradient(135deg,var(--swatch1),var(--swatch2));box-shadow:0 3px 12px color-mix(in srgb,var(--swatch2) 30%,transparent)}.themeOption strong{display:block;font-size:14px}.themeOption small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.themeOption .themeCheck{margin-right:auto;color:var(--accent);font-size:20px;opacity:0;transform:scale(.6);transition:.2s}.themeOption.selected .themeCheck{opacity:1;transform:scale(1)}.themeOption[data-theme-choice="blue"]{--swatch1:#66c0f4;--swatch2:#1b9fff}.themeOption[data-theme-choice="purple"]{--swatch1:#e0b5ff;--swatch2:#873ce0}.themeOption[data-theme-choice="aurora"]{--swatch1:#8affc8;--swatch2:#078d68}.themeOption[data-theme-choice="yellow"]{--swatch1:#fff0a3;--swatch2:#e69a00}.themeHint{margin-top:18px;padding:13px 15px;border-radius:13px;background:var(--panel2);color:var(--muted);font-size:12px;line-height:1.9}
+@media(max-width:600px){.themeOptions{grid-template-columns:1fr}.themeOption{min-height:82px}}
+/* Adjustable ambient particles */
+#particleCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.72}
+.app{position:relative;z-index:1}
+.particleSettings{margin-top:22px;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--panel);}
+.particleSettingsHead{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.particleSettingsHead .themeSettingsIcon{flex-shrink:0}
+.particleSettingsHead h3{margin:0 0 3px;font-size:16px}.particleSettingsHead p{margin:0;color:var(--muted);font-size:12px;line-height:1.7}
+.particleControl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;margin-top:18px}
+.particleControl input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
+.particleValue{min-width:86px;text-align:center;padding:9px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.particleScale{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:7px}
+.particleHint{margin-top:13px;color:var(--muted);font-size:12px;line-height:1.8}
+@media(prefers-reduced-motion:reduce){#particleCanvas{display:none}}
+@media(max-width:500px){.particleControl{grid-template-columns:1fr}.particleValue{justify-self:start}}
+
+</style>
+
+<style id="cinematicMotionPack">
+/* Cinematic motion pack — visual polish only; no data or behavior changes */
+:root{--motion-ease:cubic-bezier(.2,.8,.2,1)}
+html{scroll-behavior:smooth}
+body{background-size:100% 100%,100% 100%,auto;animation:ambientDrift 22s ease-in-out infinite alternate}
+@keyframes ambientDrift{0%{background-position:0 0,0 0,0 0}100%{background-position:3% 2%,-3% 4%,0 0}}
+.app{animation:appArrive .8s var(--motion-ease) both}
+@keyframes appArrive{from{opacity:0;transform:translateY(12px);filter:blur(4px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+.logo{position:relative;isolation:isolate;transition:transform .45s var(--motion-ease),box-shadow .45s}
+.logo:after{content:"";position:absolute;inset:-5px;border-radius:17px;border:1px solid #66c0f466;animation:logoPulse 3.4s ease-out infinite;z-index:-1}
+@keyframes logoPulse{0%{transform:scale(.88);opacity:.8}75%,100%{transform:scale(1.35);opacity:0}}
+.logo:hover{transform:rotate(-7deg) scale(1.07);box-shadow:0 12px 38px #168de788}
+.heroCard,.stat,.toolbar,.dashCard,.favoritesSection,.insightSection,.compareSection,.plannerSection,.archiveHeading{animation:sectionReveal .65s var(--motion-ease) both;transition:border-color .3s,box-shadow .3s,transform .3s}
+.stats .stat:nth-child(2){animation-delay:.07s}.stats .stat:nth-child(3){animation-delay:.14s}.stats .stat:nth-child(4){animation-delay:.21s}
+@keyframes sectionReveal{from{opacity:0;transform:translateY(16px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+.card{transform:translateZ(0);transition:transform .38s var(--motion-ease),border-color .3s,box-shadow .38s;animation:cardReveal .55s var(--motion-ease) both;animation-delay:calc(min(var(--card-index,0),12)*35ms)}
+@keyframes cardReveal{from{opacity:0;transform:translateY(18px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
+.card:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;border-radius:inherit;background:linear-gradient(115deg,transparent 15%,#ffffff0b 35%,#66c0f41c 50%,transparent 68%);transform:translateX(125%);transition:transform .8s var(--motion-ease)}
+.card:hover{transform:translateY(-7px) scale(1.012);border-color:#4c91c4;box-shadow:0 20px 48px #0008,0 0 0 1px #66c0f41a}
+.card:hover:before{transform:translateX(-125%)}
+.cover{overflow:hidden}.cover img{transition:transform .8s var(--motion-ease),filter .6s}.card:hover .cover img{transform:scale(1.055);filter:saturate(1.12)}
+.btn,.iconBtn,.favoriteBtn,.ghostBtn{position:relative;overflow:hidden;transition:transform .22s var(--motion-ease),box-shadow .25s,border-color .25s,background .25s}
+.btn:after,.iconBtn:after,.favoriteBtn:after{content:"";position:absolute;top:-60%;left:-45%;width:30%;height:220%;background:linear-gradient(90deg,transparent,#ffffff25,transparent);transform:rotate(25deg) translateX(-220%);transition:transform .65s var(--motion-ease);pointer-events:none}
+.btn:hover,.iconBtn:hover,.favoriteBtn:hover,.ghostBtn:hover{transform:translateY(-2px);box-shadow:0 8px 24px #0004;border-color:#4d82aa}
+.btn:hover:after,.iconBtn:hover:after,.favoriteBtn:hover:after{transform:rotate(25deg) translateX(650%)}
+.btn:active,.iconBtn:active,.favoriteBtn:active{transform:scale(.96)}
+.btn.primary{box-shadow:0 5px 20px #168de72a}.btn.primary:hover{box-shadow:0 8px 30px #168de75c}
+input,textarea,select{transition:border-color .25s,box-shadow .25s,background .25s}
+input:focus,textarea:focus,select:focus{border-color:#4ba8e5;box-shadow:0 0 0 3px #1b9fff20;background:#0e1925}
+.modal.show{animation:overlayIn .25s ease both}.modal.show .modalBox{animation:modalPop .42s var(--motion-ease) both}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes modalPop{from{opacity:0;transform:translateY(18px) scale(.97);filter:blur(3px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+.detailModal.show .modalBox{animation:detailArrive .48s var(--motion-ease) both}
+@keyframes detailArrive{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.detailHeroArt img{transition:transform 1s var(--motion-ease)}.detailHeroArt:hover img{transform:scale(1.035)}
+.dashCard:hover,.heroCard:hover,.stat:hover{border-color:#3d6586;box-shadow:0 20px 55px #0006,0 0 25px #1b9fff0a}
+.bar .fill,.dashBar i,.profileBar i{transform-origin:right center;animation:barGrow .9s var(--motion-ease) both}
+@keyframes barGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.plannerSection{position:relative;overflow:hidden}.plannerSection:after{content:"";position:absolute;top:-80px;left:-100px;width:240px;height:240px;border-radius:50%;background:#1b9fff0b;filter:blur(20px);pointer-events:none;animation:plannerGlow 9s ease-in-out infinite alternate}
+@keyframes plannerGlow{from{transform:translate(0,0) scale(.8)}to{transform:translate(90px,70px) scale(1.35)}}
+.planItem,.planCard,.plannerItem{transition:transform .28s var(--motion-ease),border-color .28s,box-shadow .28s}
+.planItem:hover,.planCard:hover,.plannerItem:hover{transform:translateY(-3px);border-color:#3e7096;box-shadow:0 12px 30px #0004}
+::selection{background:#1b9fff55;color:#fff}
+:focus-visible{outline:2px solid #66c0f4;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* Main navigation tabs */
+.mainTabs{display:flex;gap:10px;padding:8px;margin:0 0 24px;background:rgba(12,20,31,.86);border:1px solid #26384b;border-radius:16px;position:sticky;top:10px;z-index:5;backdrop-filter:blur(14px);box-shadow:0 12px 30px #0003}
+.mainTab{flex:1;min-width:0;border:1px solid transparent;border-radius:11px;background:transparent;color:#9eafc3;padding:13px 16px;font-weight:700;transition:all .25s;}
+.mainTab:hover{color:#eef4fb;background:#172536}.mainTab.active{color:#fff;background:linear-gradient(135deg,#1b9fff35,#66c0f418);border-color:#3b79a5;box-shadow:inset 0 0 0 1px #66c0f410,0 5px 18px #168de71a}
+.tabPanel{display:none;animation:tabReveal .35s cubic-bezier(.2,.8,.2,1) both}.tabPanel.active{display:block}
+@keyframes tabReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:560px){.app{padding:14px}.mainTabs{gap:5px;padding:5px;top:5px}.mainTab{padding:11px 6px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){.tabPanel{animation:none}}
+</style>
+
+
+<style id="extraArcadeMotion">
+/* Extra arcade polish: subtle glow, scanline and responsive hover motion */
+:root{--arcade-glow:color-mix(in srgb,var(--accent) 42%,transparent)}
+.mainTab{position:relative;isolation:isolate;overflow:hidden}
+.mainTab:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 25%,#ffffff13 48%,transparent 70%);transform:translateX(130%);transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.mainTab:hover:after{transform:translateX(-130%)}
+.mainTab.active{animation:tabEnergy 3.8s ease-in-out infinite}
+@keyframes tabEnergy{0%,100%{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 10%,transparent),0 5px 18px color-mix(in srgb,var(--accent) 8%,transparent)}50%{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 28%,transparent),0 5px 24px color-mix(in srgb,var(--accent) 18%,transparent)}}
+.themeSettings,.particleSettings,.compareSection,.insightSection,.favoritesSection{position:relative;isolation:isolate}
+.themeSettings:before,.particleSettings:before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(125deg,color-mix(in srgb,var(--accent) 48%,transparent),transparent 32%,color-mix(in srgb,var(--accent2) 30%,transparent) 68%,transparent);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.45;animation:edgeFlow 8s linear infinite}
+@keyframes edgeFlow{0%{filter:hue-rotate(0deg);opacity:.28}50%{filter:hue-rotate(24deg);opacity:.7}100%{filter:hue-rotate(0deg);opacity:.28}}
+.card .cover{position:relative}
+.card .cover:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 0%,#ffffff08 35%,#ffffff30 49%,#ffffff08 55%,transparent 72%);transform:translateX(-130%);transition:transform .9s cubic-bezier(.2,.8,.2,1)}
+.card:hover .cover:after{transform:translateX(130%)}
+.stat{transform:translateZ(0)}
+.stat:hover{transform:translateY(-5px) scale(1.018);box-shadow:0 14px 35px #0005,0 0 24px color-mix(in srgb,var(--accent) 12%,transparent)}
+.logo{animation:logoFloat 5s ease-in-out infinite}
+@keyframes logoFloat{0%,100%{translate:0 0}50%{translate:0 -3px}}
+.btn.primary{background-size:160% 160%;animation:buttonGradient 7s ease infinite}
+@keyframes buttonGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.themeOption.selected{animation:selectedThemeIn .38s cubic-bezier(.2,.8,.2,1) both}
+@keyframes selectedThemeIn{0%{transform:scale(.985)}55%{transform:scale(1.012)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.mainTab.active,.themeSettings:before,.particleSettings:before,.logo,.btn.primary{animation:none!important}.mainTab:after,.card .cover:after{display:none!important}.stat:hover{transform:none}}
+</style>
+
+</head>
+<body>
+<canvas id="particleCanvas" aria-hidden="true"></canvas>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo">🎮</div><div><h1>Steam Game Journal</h1><span>دفتر امتیازدهی شخصی بازی‌ها</span></div></div>
+    <div class="actions"><button class="btn primary" onclick="openModal()">＋ افزودن بازی</button></div>
+  </header>
+
+  <nav class="mainTabs" aria-label="بخش‌های ژورنال">
+    <button class="mainTab active" type="button" aria-selected="true" data-tab="dashboardTab" onclick="switchTab('dashboardTab',this)">📊 داشبورد</button>
+    <button class="mainTab" type="button" aria-selected="false" data-tab="dataTab" onclick="switchTab('dataTab',this)">🧠 دیتا و تحلیل</button>
+    <button class="mainTab" type="button" aria-selected="false" data-tab="archiveTab" onclick="switchTab('archiveTab',this)">🎮 آرشیو بازی‌ها</button>
+    <button class="mainTab" type="button" aria-selected="false" data-tab="settingsTab" onclick="switchTab('settingsTab',this)">⚙️ تنظیمات</button>
+  </nav>
+
+  <div class="tabPanel active" id="dashboardTab">
+  <section class="gamingDashboard" aria-label="Gaming statistics">
+    <div class="gamingDashHead">
+      <div class="gamingDashBrand">
+        <div class="gamingDashMark">▥</div>
+        <div><h2>My Gaming Stats</h2><p>Your gaming journey at a glance</p></div>
+      </div>
+      <button class="gamingDashRefresh" onclick="renderGamingDashboard()"><span>⟳</span> Refresh</button>
+    </div>
+    <div class="gamingQuickStats" id="gamingQuickStats"></div>
+    <div class="gamingDashPanels">
+      <section class="gamingPanel">
+        <h3><span style="color:#f5a623">◎</span> Completion Progress</h3>
+        <div class="gamingPanelSub" id="completionRate">0% completion rate</div>
+        <div class="completionBar" id="completionBar"></div>
+        <div class="completionLegend" id="completionLegend"></div>
+      </section>
+      <section class="gamingPanel">
+        <h3><span style="color:#528cff">◷</span> Most Played</h3>
+        <div class="gamingPanelSub">Your top games by playtime</div>
+        <div class="mostPlayedList" id="mostPlayedList"></div>
+      </section>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><small>تعداد بازی‌ها</small><strong id="count">0</strong></div>
+    <div class="stat"><small>بهترین بازی</small><strong id="best">—</strong></div>
+    <div class="stat"><small>میانگین داستان</small><strong id="storyAvg">—</strong></div>
+    <div class="stat"><small>میانگین گیم‌پلی</small><strong id="gameplayAvg">—</strong></div>
+  </section>
+
+  <section class="dashboard">
+   <div class="dashGrid" id="dashboardGrid"></div>
+  </section>
+
+  </div><!-- /dashboardTab -->
+
+  <div class="tabPanel" id="dataTab">
+  <section class="insightSection" id="gamingProfileSection">
+    <div class="insightHead"><div><h2>پروفایل سلیقه‌ی گیمینگ من</h2><p>تحلیل خودکار امتیازهایی که به بازی‌ها داده‌ای</p></div><span class="mini" id="profileGameCount">بر اساس ۰ بازی</span></div>
+    <div class="profileSummary"><div class="profileScore"><div style="text-align:center"><strong id="profileAverage">—</strong><br><span>میانگین آرشیو از ۱۰</span></div></div><div class="profileBars" id="profileBars"></div></div>
+  </section>
+
+
+
+  <section class="compareSection" id="gameCompareSection">
+    <div class="compareHead"><div><h2>⚖️ مقایسه‌ی بازی‌ها</h2><p>دو بازی از آرشیوت انتخاب کن و امتیازها و ویژگی‌هایشان را کنار هم ببین.</p></div></div>
+    <div class="comparePickers">
+      <select id="compareGameA" aria-label="بازی اول برای مقایسه"></select>
+      <div class="compareVs">VS</div>
+      <select id="compareGameB" aria-label="بازی دوم برای مقایسه"></select>
+    </div>
+    <div id="compareResults"><div class="compareEmpty">برای شروع، حداقل دو بازی در آرشیو ثبت کن.</div></div>
+  </section>
+
+
+  <section class="plannerSection" id="backlogPlanner">
+    <div class="plannerHead"><div><h2>🗓️ برنامه‌ریزی بازی‌های آینده</h2><p>بازی‌ها را از آرشیو خودت انتخاب کن، اولویت و تاریخ شروع بگذار و برنامه‌ات را با وضعیت همان بازی مدیریت کن؛ بازی تکراری ساخته نمی‌شود.</p></div></div>
+    <div class="plannerAdd"><select id="planGameSelect" aria-label="انتخاب بازی"><option value="">انتخاب بازی از آرشیو…</option></select><select id="planPrioritySelect" aria-label="اولویت"><option value="high">اولویت بالا</option><option value="medium" selected>اولویت متوسط</option><option value="low">اولویت پایین</option></select><input type="date" id="planDateInput" aria-label="تاریخ برنامه‌ریزی"><button class="btn primary" onclick="addToPlan()">＋ افزودن به برنامه</button></div>
+    <div class="plannerStats" id="plannerStats"></div><div class="planList" id="planList"></div>
+  </section>
+
+  </div><!-- /dataTab -->
+
+  <div class="tabPanel" id="archiveTab">
+  <div class="archiveHeading"><div><h2>🎮 آرشیو تصویری بازی‌ها</h2><span>کاورها با نسبت ثابت ۱۶:۹؛ برای دیدن صفحه اختصاصی هر بازی روی آن کلیک کن.</span></div></div>
+  <section class="toolbar">
+    <input class="search" id="search" placeholder="جستجوی بازی..." oninput="render()">
+    <select id="sort" onchange="render()">
+      <option value="new">جدیدترین</option><option value="score">بیشترین امتیاز</option><option value="name">نام بازی</option><option value="favorite">محبوب‌ها</option>
+    </select>
+    <button class="btn" onclick="clearAll()">پاک‌سازی همه</button>
+  </section>
+
+  <main class="grid" id="grid"></main>
+  </div><!-- /archiveTab -->
+
+  <div class="tabPanel" id="settingsTab">
+    <section class="themeSettings">
+      <div class="themeSettingsHead"><div class="themeSettingsIcon">🎨</div><div><h2>تنظیمات ظاهر ژورنال</h2><p>مود رنگی مورد علاقه‌ات را انتخاب کن؛ تغییرات بلافاصله اعمال و برای دفعات بعد ذخیره می‌شوند.</p></div></div>
+      <div class="themeOptions" role="group" aria-label="انتخاب مود رنگی">
+        <button class="themeOption" type="button" data-theme-choice="blue" onclick="setTheme('blue')"><span class="themeSwatches"><i></i></span><span><strong>آبی استیم</strong><small>کلاسیک، تمیز و گیمینگ</small></span><span class="themeCheck">✓</span></button>
+        <button class="themeOption" type="button" data-theme-choice="purple" onclick="setTheme('purple')"><span class="themeSwatches"><i></i></span><span><strong>نئون بنفش</strong><small>درخشان، سایبرپانکی و مرموز</small></span><span class="themeCheck">✓</span></button>
+        <button class="themeOption" type="button" data-theme-choice="aurora" onclick="setTheme('aurora')"><span class="themeSwatches"><i></i></span><span><strong>سبز شفقی</strong><small>زمردی، آرام و آینده‌نگر</small></span><span class="themeCheck">✓</span></button>
+        <button class="themeOption" type="button" data-theme-choice="yellow" onclick="setTheme('yellow')"><span class="themeSwatches"><i></i></span><span><strong>طلایی خورشیدی</strong><small>زرد گرم با حس لوکس</small></span><span class="themeCheck">✓</span></button>
+      </div>
+      <section class="particleSettings" aria-labelledby="particleTitle">
+        <div class="particleSettingsHead">
+          <div class="themeSettingsIcon">✨</div>
+          <div><h3 id="particleTitle">افکت پارتیکل (ذرات شناور)</h3><p>تعداد ذرات نورانی پس‌زمینه را مطابق سلیقه‌ات تنظیم کن.</p></div>
+        </div>
+        <div class="particleControl">
+          <input id="particleDensity" type="range" min="0" max="100" step="5" value="35" aria-label="میزان پارتیکل" oninput="setParticleDensity(this.value)">
+          <output class="particleValue" id="particleDensityValue" for="particleDensity">۳۵٪ · متوسط</output>
+        </div>
+        <div class="particleScale"><span>خاموش</span><span>کم</span><span>متوسط</span><span>زیاد</span><span>خیلی زیاد</span></div>
+        <div class="particleHint">🌌 با کم کردن مقدار، تعداد ذرات و خطوط اتصال کمتر می‌شود؛ روی صفر، افکت کاملاً خاموش خواهد شد. تنظیم تو ذخیره می‌شود.</div>
+      </section>
+      <div class="themeHint">💡 انتخاب مود فقط ظاهر برنامه را تغییر می‌دهد؛ بازی‌ها، امتیازها، محبوب‌ها، مقایسه‌ها و برنامه‌ریزی‌ها دست‌نخورده باقی می‌مانند.</div>
+    </section>
+  </div><!-- /settingsTab -->
+</div>
+
+<div class="modal" id="modal">
+ <div class="modalBox">
+  <div class="modalHead"><h3 id="modalTitle">افزودن بازی</h3><button class="iconBtn" onclick="closeModal()">✕</button></div>
+  <div class="formGrid">
+   <div class="field"><label>نام بازی *</label><input id="name" placeholder="مثلاً Cyberpunk 2077"></div>
+   <div class="field"><label>ژانر</label><input id="genre" placeholder="Action / RPG / Racing..."></div>
+   <div class="field"><label>وضعیت بازی</label><select id="status"><option value="notstarted">هنوز شروع نکردم</option><option value="playing">در حال بازی</option><option value="completed">تمام شده</option><option value="dropped">رها شده</option><option value="wishlist">در لیست بازی</option></select></div>
+   <div class="field"><label>Tier شخصی</label><select id="tier"><option value="S">S — شاهکار</option><option value="A">A — عالی</option><option value="B">B — خوب</option><option value="C">C — متوسط</option><option value="D">D — ضعیف</option></select></div>
+   <div class="field"><label>مدت بازی (ساعت)</label><input id="playtime" type="number" min="0" step="0.1" placeholder="مثلاً 47"></div>
+   <div class="field"><label>قیمت خرید (تومان)</label><input id="price" type="number" min="0" step="1000" placeholder="مثلاً 1200000"></div>
+   <div class="field full"><label>لینک تصویر کاور (اختیاری)</label><input id="cover" placeholder="https://..."></div>
+   <div class="field full"><label>نظر کلی من</label><textarea id="note" placeholder="تجربه کلی تو از بازی..."></textarea></div>
+   <div class="field"><label>نقاط قوت</label><textarea id="pros" placeholder="مثلاً داستان، طراحی مراحل، موسیقی..."></textarea></div>
+   <div class="field"><label>نقاط ضعف</label><textarea id="cons" placeholder="مثلاً مشکلات فنی، تکراری شدن..."></textarea></div>
+   <div class="field full"><label>نظر نهایی من</label><textarea id="finalReview" placeholder="اگر بخواهی این بازی را در چند جمله جمع‌بندی کنی..."></textarea></div>
+  </div>
+  <div class="ratingSection">
+   <div class="ratingHead"><b>امتیازدهی جزئی</b><span>از ۱۰</span></div>
+   <div id="ratings"></div>
+  </div>
+  <div class="modalFoot"><button class="btn" onclick="closeModal()">انصراف</button><button class="btn primary" onclick="saveGame()">ذخیره بازی</button></div>
+ </div>
+</div>
+
+<div class="modal detailModal" id="detailModal">
+ <div class="modalBox">
+  <div class="modalHead"><h3>جزئیات بازی</h3><button class="iconBtn" onclick="closeDetail()">✕</button></div>
+  <div id="detailContent"></div>
+ </div>
+</div>
+
+<script>
+const nameEl=document.getElementById('name'), genreEl=document.getElementById('genre'), coverEl=document.getElementById('cover'), noteEl=document.getElementById('note'), statusEl=document.getElementById('status'), tierEl=document.getElementById('tier'), playtimeEl=document.getElementById('playtime'), priceEl=document.getElementById('price'), prosEl=document.getElementById('pros'), consEl=document.getElementById('cons'), finalReviewEl=document.getElementById('finalReview'), gridEl=document.getElementById('grid'), countEl=document.getElementById('count'), bestEl=document.getElementById('best'), avgScoreEl=document.getElementById('avgScore'), storyAvgEl=document.getElementById('storyAvg'), gameplayAvgEl=document.getElementById('gameplayAvg'), searchEl=document.getElementById('search'), sortEl=document.getElementById('sort'), modalEl=document.getElementById('modal'), detailModalEl=document.getElementById('detailModal'), detailContentEl=document.getElementById('detailContent'), dashboardGridEl=document.getElementById('dashboardGrid');
+const categories=[
+ ['gameplay','گیم‌پلی'],['story','داستان'],['graphics','گرافیک'],['sound','موسیقی و صدا'],['atmosphere','فضا و اتمسفر / مپ'],
+ ['performance','عملکرد فنی'],['content','محتوا و تنوع'],['replay','ارزش تکرار'],['value','ارزش خرید']
+];
+let games=JSON.parse(localStorage.getItem('steamGameJournal')||'[]');
+let editId=null;
+
+function setTheme(theme){
+ const allowed=['blue','purple','aurora','yellow'];
+ if(!allowed.includes(theme))theme='blue';
+ document.documentElement.dataset.theme=theme;
+ try{localStorage.setItem('steamGameJournalTheme',theme)}catch(e){}
+ document.querySelectorAll('.themeOption').forEach(option=>{
+   const selected=option.dataset.themeChoice===theme;
+   option.classList.toggle('selected',selected);
+   option.setAttribute('aria-pressed',selected?'true':'false');
+ });
+}
+const particleCanvas=document.getElementById('particleCanvas');
+const particleCtx=particleCanvas?.getContext('2d');
+let particleDensity=35, particleItems=[], particleFrame=0, particleWidth=0, particleHeight=0;
+function particleLabel(value){value=Number(value);if(value===0)return 'خاموش';if(value<=20)return 'کم';if(value<=50)return 'متوسط';if(value<=75)return 'زیاد';return 'خیلی زیاد'}
+function setParticleDensity(value,save=true){
+ particleDensity=Math.max(0,Math.min(100,Number(value)||0));
+ const slider=document.getElementById('particleDensity'),out=document.getElementById('particleDensityValue');
+ if(slider && Number(slider.value)!==particleDensity)slider.value=String(particleDensity);
+ if(out)out.textContent=`${particleDensity.toLocaleString('fa-IR')}٪ · ${particleLabel(particleDensity)}`;
+ if(save){try{localStorage.setItem('steamGameJournalParticleDensity',String(particleDensity))}catch(e){}}
+ resizeParticleCanvas();
+}
+function resizeParticleCanvas(){
+ if(!particleCanvas||!particleCtx)return;
+ const dpr=Math.min(window.devicePixelRatio||1,2);particleWidth=window.innerWidth;particleHeight=window.innerHeight;
+ particleCanvas.width=Math.round(particleWidth*dpr);particleCanvas.height=Math.round(particleHeight*dpr);
+ particleCanvas.style.width=particleWidth+'px';particleCanvas.style.height=particleHeight+'px';particleCtx.setTransform(dpr,0,0,dpr,0,0);
+ const count=Math.round((particleWidth*particleHeight/18000)*(particleDensity/100));
+ while(particleItems.length<count)particleItems.push({x:Math.random()*particleWidth,y:Math.random()*particleHeight,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:.7+Math.random()*1.8,a:.18+Math.random()*.48});
+ if(particleItems.length>count)particleItems.length=count;
+ if(particleDensity===0){particleCtx.clearRect(0,0,particleWidth,particleHeight);return;}
+ if(!particleFrame)particleFrame=requestAnimationFrame(drawParticles);
+}
+function drawParticles(){
+ particleFrame=0;if(!particleCtx||!particleCanvas)return;
+ particleCtx.clearRect(0,0,particleWidth,particleHeight);
+ if(particleDensity===0||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#66c0f4';
+ const maxDist=85+(particleDensity*.45);
+ for(let i=0;i<particleItems.length;i++){
+  const p=particleItems[i];p.x+=p.vx;p.y+=p.vy;
+  if(p.x<0)p.x=particleWidth;if(p.x>particleWidth)p.x=0;if(p.y<0)p.y=particleHeight;if(p.y>particleHeight)p.y=0;
+  particleCtx.globalAlpha=p.a;particleCtx.fillStyle=accent;particleCtx.beginPath();particleCtx.arc(p.x,p.y,p.r,0,Math.PI*2);particleCtx.fill();
+  if(particleDensity>=20){for(let j=i+1;j<particleItems.length;j++){const q=particleItems[j],dx=p.x-q.x,dy=p.y-q.y,dist=Math.hypot(dx,dy);if(dist<maxDist){particleCtx.globalAlpha=(1-dist/maxDist)*.13*(particleDensity/100);particleCtx.strokeStyle=accent;particleCtx.lineWidth=.7;particleCtx.beginPath();particleCtx.moveTo(p.x,p.y);particleCtx.lineTo(q.x,q.y);particleCtx.stroke();}}}
+ }
+ particleCtx.globalAlpha=1;particleFrame=requestAnimationFrame(drawParticles);
+}
+window.addEventListener('resize',resizeParticleCanvas,{passive:true});
+function loadParticleDensity(){let value=35;try{const saved=localStorage.getItem('steamGameJournalParticleDensity');if(saved!==null)value=Number(saved)}catch(e){}setParticleDensity(value,false)}
+
+function loadTheme(){
+ let theme='blue';
+ try{theme=localStorage.getItem('steamGameJournalTheme')||'blue'}catch(e){}
+ setTheme(theme);
+}
+
+function switchTab(tabId,button){
+ document.querySelectorAll('.tabPanel').forEach(panel=>panel.classList.toggle('active',panel.id===tabId));
+ document.querySelectorAll('.mainTab').forEach(tab=>{const active=tab.dataset.tab===tabId;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',active?'true':'false');});
+ if(button)button.blur();
+ window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+
+function makeRatings(values={}){
+ values={...values, atmosphere: values.atmosphere ?? 7};
+ const box=document.getElementById('ratings');
+ box.innerHTML=categories.map(([key,label])=>`
+ <div class="ratingRow"><span>${label}</span>
+ <input type="range" min="0" max="10" step="0.5" value="${values[key]??7}" data-key="${key}" oninput="this.nextElementSibling.textContent=this.value">
+ <b>${values[key]??7}</b></div>`).join('');
+}
+function openModal(id=null){
+ editId=id; modalEl.classList.add('show');
+ document.getElementById('modalTitle').textContent=id?'ویرایش بازی':'افزودن بازی';
+ if(id){
+   const g=games.find(x=>x.id===id);
+   nameEl.value=g.name; genreEl.value=g.genre||''; coverEl.value=g.cover||''; noteEl.value=g.note||'';
+   statusEl.value=g.status||'notstarted'; tierEl.value=g.tier||'B';
+   playtimeEl.value=g.playtime??''; priceEl.value=g.price??'';
+   prosEl.value=g.pros||''; consEl.value=g.cons||''; finalReviewEl.value=g.finalReview||'';
+   makeRatings(g.ratings);
+ }else{
+   nameEl.value='';genreEl.value='';coverEl.value='';noteEl.value='';
+   statusEl.value='notstarted';tierEl.value='B';playtimeEl.value='';priceEl.value='';
+   prosEl.value='';consEl.value='';finalReviewEl.value='';makeRatings();
+ }
+}
+function closeModal(){modalEl.classList.remove('show');editId=null}
+function saveGame(){
+ const n=nameEl.value.trim(); if(!n){nameEl.focus();return}
+ const ratings={};document.querySelectorAll('#ratings input').forEach(x=>ratings[x.dataset.key]=+x.value);
+ const old=editId?games.find(x=>x.id===editId):null;
+ const obj={id:editId||Date.now(),name:n,genre:genreEl.value.trim(),cover:coverEl.value.trim(),note:noteEl.value.trim(),
+   status:statusEl.value,tier:tierEl.value,playtime:parseFloat(playtimeEl.value)||0,price:parseFloat(priceEl.value)||0,
+   pros:prosEl.value.trim(),cons:consEl.value.trim(),finalReview:finalReviewEl.value.trim(),ratings, favorite:old?.favorite||false,
+   created:old?.created||Date.now()};
+ if(editId) games=games.map(g=>g.id===editId?obj:g); else games.push(obj);
+ localStorage.setItem('steamGameJournal',JSON.stringify(games));closeModal();render();
+}
+function score(g){const a=categories.map(([k])=>Number(g.ratings?.[k]??7));return a.reduce((x,y)=>x+y,0)/(a.length||1)}
+
+function showAllGames(){
+  document.getElementById('favoritesSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('grid')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderFavorites(){
+  const fg=document.getElementById('favoritesGrid'), empty=document.getElementById('emptyFavorites');
+  if(!fg) return;
+  const favs=games.filter(g=>g.favorite);
+  fg.innerHTML=favs.map(card).join('');
+  if(empty) empty.style.display=favs.length?'none':'block';
+}
+
+
+function renderGameCompare(){
+ const aSel=document.getElementById('compareGameA'), bSel=document.getElementById('compareGameB'), out=document.getElementById('compareResults');
+ if(!aSel||!bSel||!out)return;
+ const prevA=aSel.value, prevB=bSel.value;
+ const options=games.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
+ aSel.innerHTML=options; bSel.innerHTML=options;
+ if(games.some(g=>String(g.id)===prevA))aSel.value=prevA;
+ else if(games[0])aSel.value=String(games[0].id);
+ if(games.some(g=>String(g.id)===prevB))bSel.value=prevB;
+ else if(games[1])bSel.value=String(games[1].id);
+ aSel.disabled=bSel.disabled=games.length<2;
+ if(games.length<2){out.innerHTML='<div class="compareEmpty">برای مقایسه، حداقل دو بازی در آرشیو ثبت کن.</div>';return;}
+ let a=games.find(g=>String(g.id)===aSel.value)||games[0], b=games.find(g=>String(g.id)===bSel.value)||games[1];
+ if(a.id===b.id){b=games.find(g=>g.id!==a.id)||b;bSel.value=String(b.id);}
+ if(!a||!b){out.innerHTML='<div class="compareEmpty">دو بازی برای مقایسه انتخاب کن.</div>';return;}
+ const image=g=>g.cover?`<img src="${esc(g.cover)}" alt="${esc(g.name)}" onerror="this.style.display='none'">`:'<img alt="" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">';
+ const cardHtml=g=>`<div class="compareGame">${image(g)}<div><h3>${esc(g.name)}</h3><div class="compareScore">${score(g).toFixed(1)}<small style="display:inline;color:var(--muted)"> / 10</small></div><small>${esc(g.genre||'بدون ژانر')} · Tier ${tierLabel(g.tier)}</small><small>⏱ ${g.playtime?esc(g.playtime)+' ساعت':'زمان ثبت نشده'}</small></div></div>`;
+ const metrics=categories.map(([key,label])=>{
+   const av=Math.max(0,Math.min(10,Number(a.ratings?.[key]??7))), bv=Math.max(0,Math.min(10,Number(b.ratings?.[key]??7)));
+   return `<div class="compareMetric"><span>${label}</span><div class="compareTrack"><span class="left" style="width:${av*10}%"></span><span class="right" style="width:${bv*10}%"></span></div><b>${av} / ${bv}</b></div>`;
+ }).join('');
+ out.innerHTML=`<div class="compareResults">${cardHtml(a)}${cardHtml(b)}</div><div class="compareMetrics">${metrics}</div><div class="compareLegend"><span><i class="l"></i>${esc(a.name)}</span><span><i class="r"></i>${esc(b.name)}</span></div>`;
+}
+
+
+function persistGames(){localStorage.setItem('steamGameJournal',JSON.stringify(games));}
+function renderPlanner(){
+ const sel=document.getElementById('planGameSelect'), list=document.getElementById('planList'), stats=document.getElementById('plannerStats');
+ if(!sel||!list||!stats)return;
+ const previous=sel.value;
+ const eligible=games.filter(g=>g.status!=='completed'&&g.status!=='dropped'&&!g.plannedForNext);
+ sel.innerHTML='<option value="">انتخاب بازی از آرشیو…</option>'+eligible.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
+ if(eligible.some(g=>String(g.id)===previous))sel.value=previous;
+ const planned=games.filter(g=>g.plannedForNext && g.status!=='completed' && g.status!=='dropped').sort((a,b)=>{const da=a.planDate||'9999-99-99',db=b.planDate||'9999-99-99';return da.localeCompare(db)||({high:0,medium:1,low:2}[a.planPriority||'medium']-{high:0,medium:1,low:2}[b.planPriority||'medium']);});
+ const done=games.filter(g=>g.plannedForNext&&g.status==='completed').length;
+ stats.innerHTML=`<span class="plannerStat">در برنامه <b>${planned.length.toLocaleString('fa-IR')}</b></span><span class="plannerStat">تمام‌شده از برنامه <b>${done.toLocaleString('fa-IR')}</b></span><span class="plannerStat">بازی‌های قابل افزودن <b>${eligible.length.toLocaleString('fa-IR')}</b></span>`;
+ if(!planned.length){list.innerHTML='<div class="planEmpty">هنوز بازی‌ای برای آینده برنامه‌ریزی نکردی.<br>از فهرست بالا یک بازی موجود در آرشیو انتخاب کن تا اینجا نمایش داده شود.</div>';return;}
+ const pr={high:['بالا','priority-high'],medium:['متوسط','priority-medium'],low:['پایین','priority-low']};
+ list.innerHTML=planned.map(g=>{const p=pr[g.planPriority||'medium'];return `<article class="planItem"><div>${g.cover?`<img src="${esc(g.cover)}" alt="${esc(g.name)}" onerror="this.style.display='none'">`:'<div class="planCover">🎮</div>'}</div><div><div class="planTitle">${esc(g.name)}</div><div class="planSub">${esc(g.genre||'بدون ژانر')} · وضعیت: ${statusLabel(g.status)}</div><span class="planPriority ${p[1]}">اولویت ${p[0]}</span>${g.planDate?`<div class="planSub">📅 ${new Date(g.planDate+'T12:00:00').toLocaleDateString('fa-IR')}</div>`:'<div class="planSub">تاریخ شروع تعیین نشده</div>'}</div><div class="planControls"><select aria-label="اولویت ${esc(g.name)}" onchange="updatePlan(${g.id},'planPriority',this.value)"><option value="high" ${g.planPriority==='high'?'selected':''}>اولویت بالا</option><option value="medium" ${(!g.planPriority||g.planPriority==='medium')?'selected':''}>اولویت متوسط</option><option value="low" ${g.planPriority==='low'?'selected':''}>اولویت پایین</option></select><input type="date" aria-label="تاریخ شروع ${esc(g.name)}" value="${esc(g.planDate||'')}" onchange="updatePlan(${g.id},'planDate',this.value)"><button onclick="removeFromPlan(${g.id})" title="حذف از برنامه">حذف</button></div></article>`;}).join('');
+}
+function addToPlan(){const sel=document.getElementById('planGameSelect'), id=Number(sel.value);if(!id){sel.focus();return;}const g=games.find(x=>x.id===id);if(!g)return;if(g.plannedForNext){alert('این بازی از قبل در برنامه‌ریزی قرار دارد.');return;}g.plannedForNext=true;g.planPriority=document.getElementById('planPrioritySelect').value;g.planDate=document.getElementById('planDateInput').value||'';persistGames();render();}
+function updatePlan(id,key,value){const g=games.find(x=>x.id===id);if(!g)return;g[key]=value;persistGames();renderPlanner();}
+function removeFromPlan(id){const g=games.find(x=>x.id===id);if(!g)return;g.plannedForNext=false;delete g.planDate;delete g.planPriority;persistGames();renderPlanner();}
+
+function render(){
+ const q=searchEl.value.trim().toLowerCase();
+ let list=games.filter(g=>g.name.toLowerCase().includes(q)||(g.genre||'').toLowerCase().includes(q));
+ const s=sortEl.value;
+ if(s==='favorite'){list=list.filter(g=>g.favorite);list.sort((a,b)=>score(b)-score(a));}else if(s==='score')list.sort((a,b)=>score(b)-score(a));else if(s==='name')list.sort((a,b)=>a.name.localeCompare(b.name));else list.sort((a,b)=>b.created-a.created);
+ gridEl.innerHTML=list.length?list.map(card).join(''):`<div class="empty"><div style="font-size:42px">🎮</div><h3>هنوز بازی‌ای ثبت نکردی</h3><p>از دکمه «افزودن بازی» شروع کن.</p></div>`;
+ updateStats();
+  renderFavorites();
+  renderGamingDashboard();
+  renderGameCompare();
+  renderPlanner();
+}
+function statusLabel(s){
+ return ({playing:'در حال بازی',completed:'تمام شده',wishlist:'در لیست بازی',dropped:'رها شده',notstarted:'هنوز شروع نکردم'})[s]||'هنوز شروع نکردم';
+}
+function tierLabel(t){return ({S:'S',A:'A',B:'B',C:'C',D:'D'})[t]||'B'}
+function money(n){return n?Number(n).toLocaleString('fa-IR')+' تومان':'—'}
+function card(g){
+ const sc=score(g), cost=(g.playtime>0&&g.price>0)?Math.round(g.price/g.playtime):0;
+ return `<article class="card">
+ <div class="cover" onclick="openDetail(${g.id})" style="cursor:pointer">${g.cover?`<img src="${esc(g.cover)}" onerror="this.style.display='none'">`:'🎮'}</div>
+ <div class="cardBody"><div class="titleRow"><div style="flex:1"><div class="title">${esc(g.name)} <span class="scoreBadge">${sc.toFixed(1)} / 10</span></div><div class="genre">${esc(g.genre||'بدون ژانر')}</div>
+ <div class="metaRow"><span class="statusPill status-${g.status||'notstarted'}">${statusLabel(g.status)}</span><span class="tierPill tier${g.tier||'B'}">Tier ${tierLabel(g.tier)}</span></div></div><button class="favoriteBtn ${g.favorite?'active':''}" onclick="toggleFavorite(${g.id})" title="${g.favorite?'حذف از محبوب‌ها':'افزودن به محبوب‌ها'}">${g.favorite?'★':'☆'}</button></div>
+ <div class="bars">${categories.slice(0,5).map(([k,l])=>`<div class="barLine"><span>${l}</span><div class="bar"><div class="fill" style="width:${(Number(g.ratings?.[k]??7))*10}%"></div></div><b>${Number(g.ratings?.[k]??7)}</b></div>`).join('')}</div>
+ <div class="statLine"><span>⏱ مدت بازی</span><b>${g.playtime?g.playtime+' ساعت':'—'}</b></div>
+ <div class="statLine"><span>💰 هزینه هر ساعت</span><b>${cost?money(cost):'—'}</b></div>
+ ${g.note?`<div class="note">${esc(g.note)}</div>`:''}
+ <button class="btn detailBtn" onclick="openDetail(${g.id})">مشاهده جزئیات و امتیازات</button>
+ <div class="cardFooter"><span class="mini">${new Date(g.created).toLocaleDateString('fa-IR')}</span><div class="icons"><button class="iconBtn" onclick="openModal(${g.id})">✎</button><button class="iconBtn" onclick="removeGame(${g.id})">🗑</button></div></div>
+ </div></article>`;
+}
+function updateStats(){
+ // Recalculate each summary field independently so a malformed/older saved record
+ // cannot leave the summary row showing placeholders while games are present.
+ const total=Array.isArray(games)?games.length:0;
+ countEl.textContent=String(total);
+ if(!total){
+   if(avgScoreEl)avgScoreEl.textContent='—';
+   bestEl.textContent='—'; storyAvgEl.textContent='—'; gameplayAvgEl.textContent='—';
+   updateDashboard(); renderInsights(); return;
+ }
+ const safeRating=(g,key)=>{const n=Number(g?.ratings?.[key]);return Number.isFinite(n)?Math.max(0,Math.min(10,n)):7};
+ const validGames=games.filter(g=>g&&typeof g.name==='string');
+ const avg=validGames.reduce((a,g)=>a+score(g),0)/(validGames.length||1);
+ if(avgScoreEl)avgScoreEl.textContent=avg.toFixed(1);
+ const best=[...validGames].sort((a,b)=>score(b)-score(a))[0];
+ bestEl.textContent=best?.name||'—';
+ storyAvgEl.textContent=(validGames.reduce((a,g)=>a+safeRating(g,'story'),0)/(validGames.length||1)).toFixed(1);
+ gameplayAvgEl.textContent=(validGames.reduce((a,g)=>a+safeRating(g,'gameplay'),0)/(validGames.length||1)).toFixed(1);
+ updateDashboard(); renderInsights();
+}
+function openDetail(id){
+ const g=games.find(x=>x.id===id); if(!g)return;
+ const cost=(g.playtime>0&&g.price>0)?Math.round(g.price/g.playtime):0;
+ const ratingsHtml=categories.map(([k,label])=>{const v=Number(g.ratings?.[k]??7);return `<div class="detailMetric"><span>${label}</span><div class="bar"><div class="fill" style="width:${v*10}%"></div></div><b>${v}</b></div>`}).join('');
+ const page=window.open('','_blank');
+ if(!page){alert('برای باز کردن صفحه اختصاصی، اجازه بازشدن پنجره جدید را در مرورگر فعال کن.');return;}
+ const headStyles=[...document.querySelectorAll('style')].map(x=>x.innerHTML).join('\n');
+ const content=`
+  <header class="detailPageHead"><a class="backLink" href="#" onclick="window.close();return false">← بازگشت به آرشیو</a><div class="pageBrand">🎮 ژورنال گیم <span>پرونده اختصاصی بازی</span></div></header>
+  <main class="detailPage">
+   <section class="detailHero">
+    <div class="detailHeroArt">${g.cover?`<img src="${esc(g.cover)}" alt="${esc(g.name)}" onerror="this.style.display='none'">`:'<span>🎮</span>'}<div class="detailHeroShade"></div><div class="detailHeroTitle"><h2>${esc(g.name)}</h2><p>${esc(g.genre||'بدون ژانر')} · ${statusLabel(g.status)} · Tier ${tierLabel(g.tier)}</p></div></div>
+    <div class="detailScorePanel"><span class="mini">امتیاز نهایی شخصی</span><div class="detailScoreBig">${score(g).toFixed(1)} <small>/ 10</small></div><div class="detailPageActions"><button class="btn primary" onclick="window.opener.openModal(${g.id});window.close()">✎ ویرایش بازی</button><button class="btn" onclick="window.opener.toggleFavorite(${g.id});location.reload()">${g.favorite?'★ حذف از محبوب‌ها':'☆ افزودن به محبوب‌ها'}</button></div><div class="quickFacts"><div><span>مدت بازی</span><b>${g.playtime?g.playtime+' ساعت':'—'}</b></div><div><span>قیمت خرید</span><b>${money(g.price)}</b></div><div><span>هزینه هر ساعت</span><b>${cost?money(cost):'—'}</b></div><div><span>تاریخ ثبت</span><b>${new Date(g.created).toLocaleDateString('fa-IR')}</b></div></div></div>
+   </section>
+   <section class="detailBodyGrid">
+    <div class="insightPanel"><h3>📊 جزئیات امتیازدهی</h3><div class="detailMetricList">${ratingsHtml}</div></div>
+    <div class="detailTextColumn"><div class="insightPanel"><h3>📝 نظر کلی من</h3><div class="detailLongText">${esc(g.note||'هنوز نظری برای این بازی ثبت نشده است.')}</div></div><div class="reviewBoxes"><div class="reviewBox"><h4>✅ نقاط قوت</h4><p>${esc(g.pros||'ثبت نشده')}</p></div><div class="reviewBox"><h4>⚠️ نقاط ضعف</h4><p>${esc(g.cons||'ثبت نشده')}</p></div></div>${g.finalReview?`<div class="reviewBox finalReview"><h4>🧾 نظر نهایی من</h4><p>${esc(g.finalReview)}</p></div>`:''}</div>
+   </section>
+  </main>`;
+ const extra=`
+ body{margin:0;background:#0b1018;color:#eef4fb;font-family:Vazirmatn,Arial,sans-serif;min-height:100vh}
+ .detailPageHead{max-width:1240px;margin:auto;padding:24px 28px;display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid #263547}
+ .backLink{color:#66c0f4;text-decoration:none;border:1px solid #263547;border-radius:11px;padding:10px 14px}.pageBrand{font-weight:800;display:flex;gap:12px;align-items:center}.pageBrand span{font-weight:400;color:#91a0b4;font-size:12px}
+ .detailPage{max-width:1240px;margin:28px auto;padding:0 28px 45px}.detailHero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:22px;align-items:stretch}
+ .detailHeroArt{position:relative;aspect-ratio:16/9;min-height:0;height:auto;border-radius:20px;overflow:hidden;background:#172536;border:1px solid #304256;display:block;font-size:60px}
+ .detailHeroArt>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}.detailHeroShade{position:absolute;inset:45% 0 0;background:linear-gradient(transparent,#070c14ed);pointer-events:none}.detailHeroTitle{position:absolute;z-index:2;bottom:22px;left:24px;right:24px}.detailHeroTitle h2{font-size:clamp(25px,3vw,40px);margin:0;overflow-wrap:anywhere}.detailHeroTitle p{color:#d0dbe8;margin:8px 0 0}
+ .detailScorePanel{border:1px solid #2a3b4f;border-radius:20px;padding:25px;background:linear-gradient(160deg,#141f2d,#0e1621);display:flex;flex-direction:column;justify-content:flex-start}.detailScoreBig{font-size:54px;font-weight:800;color:#66c0f4;line-height:1.2;margin:10px 0 20px}.detailScoreBig small{font-size:17px;color:#91a0b4}.detailPageActions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}.quickFacts{display:grid;grid-template-columns:1fr 1fr;gap:12px}.quickFacts>div{padding:12px;background:#0b1420;border:1px solid #233448;border-radius:12px;min-width:0}.quickFacts span{display:block;color:#91a0b4;font-size:11px;margin-bottom:6px}.quickFacts b{font-size:13px;overflow-wrap:anywhere}
+ .detailBodyGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-top:22px}.insightPanel{padding:22px;border-radius:18px;background:#111b28;border:1px solid #26384c;min-width:0}.insightPanel h3{margin:0 0 18px;font-size:17px}.detailMetricList{display:grid;gap:16px}.detailMetric{display:grid;grid-template-columns:minmax(105px,150px) minmax(0,1fr) 32px;gap:10px;align-items:center;font-size:12px;color:#bdc9d7}.bar{height:8px;background:#243448;border-radius:99px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#3a9ee9,#66c0f4);border-radius:99px}.detailTextColumn{display:grid;gap:14px;align-content:start}.detailLongText{color:#c4cfdd;font-size:13px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}.reviewBoxes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0}.reviewBox{padding:17px;border:1px solid #27384b;background:#111b28;border-radius:14px;min-width:0}.reviewBox h4{margin:0 0 9px;font-size:13px}.reviewBox p{margin:0;color:#c4cfdd;font-size:12px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}.finalReview{margin-top:0}
+ @media(max-width:800px){.detailPageHead{padding:16px;align-items:flex-start;flex-direction:column}.detailPage{padding:0 16px 28px;margin-top:16px}.detailHero,.detailBodyGrid{grid-template-columns:1fr}.detailHeroArt{aspect-ratio:16/9}.detailScorePanel{padding:18px}.reviewBoxes{grid-template-columns:1fr}.detailMetric{grid-template-columns:minmax(95px,125px) minmax(0,1fr) 28px}}
+ `;
+ page.document.open();page.document.write(`<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(g.name)} | ژورنال گیم</title><style>${headStyles}\n${extra}</style></head><body>${content}</body></html>`);page.document.close();
+}
+function closeDetail(){detailModalEl.classList.remove('show')}
+detailModalEl.addEventListener('click',e=>{if(e.target===detailModalEl)closeDetail()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(detailModalEl.classList.contains('show'))closeDetail();else if(modalEl.classList.contains('show'))closeModal()}});
+
+function drawRadar(g){
+ const c=document.getElementById('radar'); if(!c)return;
+ const ctx=c.getContext('2d'), w=c.width, h=c.height, cx=w/2, cy=h/2+8, r=145;
+ ctx.clearRect(0,0,w,h);
+ const vals=categories.map(([k])=>Number(g.ratings[k])||0), n=vals.length;
+ ctx.font='12px Vazirmatn, Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+ for(let level=2;level<=10;level+=2){
+   ctx.beginPath();
+   for(let i=0;i<n;i++){const a=-Math.PI/2+i*2*Math.PI/n, rr=r*level/10, x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}
+   ctx.closePath();ctx.strokeStyle='#263547';ctx.stroke();
+ }
+ for(let i=0;i<n;i++){
+   const a=-Math.PI/2+i*2*Math.PI/n, x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
+   ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.strokeStyle='#263547';ctx.stroke();
+   ctx.fillStyle='#aebdce';ctx.fillText(categories[i][1],cx+Math.cos(a)*(r+28),cy+Math.sin(a)*(r+28));
+ }
+ ctx.beginPath();
+ vals.forEach((v,i)=>{const a=-Math.PI/2+i*2*Math.PI/n, rr=r*v/10,x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});
+ ctx.closePath();ctx.fillStyle='rgba(102,192,244,.18)';ctx.fill();ctx.strokeStyle='#66c0f4';ctx.lineWidth=2;ctx.stroke();
+ vals.forEach((v,i)=>{const a=-Math.PI/2+i*2*Math.PI/n,rr=r*v/10,x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#66c0f4';ctx.fill();});
+}
+
+function toggleFavorite(id){
+ const g=games.find(x=>x.id===id); if(!g)return;
+ g.favorite=!g.favorite; localStorage.setItem('steamGameJournal',JSON.stringify(games));
+ render();
+ if(detailModalEl.classList.contains('show')) openDetail(id);
+}
+
+function renderGamingDashboard(){
+  const quick=document.getElementById('gamingQuickStats');
+  if(!quick)return;
+  const totalHours=games.reduce((a,g)=>a+(Number(g.playtime)||0),0);
+  const completed=games.filter(g=>g.status==='completed').length;
+  const favorites=games.filter(g=>g.favorite).length;
+  const quickData=[
+    ['🎮',games.length,'Games Owned','purple'],
+    ['◷',totalHours.toLocaleString('en-US',{maximumFractionDigits:1})+' h','Hours Played','blue'],
+    ['◎',completed,'Completed','gold'],
+    ['★',favorites,'Favorites','green']
+  ];
+  quick.innerHTML=quickData.map(([icon,value,label,color])=>`<div class="gamingQuickCard"><div class="gamingQuickIcon ${color}">${icon}</div><div><div class="gamingQuickValue">${value}</div><div class="gamingQuickLabel">${label}</div></div></div>`).join('');
+  const statuses=[
+    {key:'completed',label:'Completed',color:'#f6b83f'},
+    {key:'finished',label:'Finished',color:'#10b981'},
+    {key:'playing',label:'Playing',color:'#22c55e'},
+    {key:'onhold',label:'On Hold',color:'#f97316'},
+    {key:'backlog',label:'Backlog',color:'#3b82f6'},
+    {key:'abandoned',label:'Abandoned',color:'#9ca3af'}
+  ];
+  // Map available app statuses to the closest categories in the reference dashboard.
+  const counts={
+    completed:games.filter(g=>g.status==='completed').length,
+    finished:games.filter(g=>g.status==='completed').length,
+    playing:games.filter(g=>g.status==='playing').length,
+    onhold:games.filter(g=>g.status==='dropped').length,
+    backlog:games.filter(g=>g.status==='notstarted'||!g.status).length,
+    abandoned:games.filter(g=>g.status==='wishlist').length
+  };
+  const total=games.length||1;
+  const completionRate=games.length?Math.round(counts.completed/games.length*1000)/10:0;
+  document.getElementById('completionRate').textContent=completionRate+'% completion rate';
+  document.getElementById('completionBar').innerHTML=statuses.map(st=>`<span title="${st.label}: ${counts[st.key]}" style="width:${counts[st.key]/total*100}%;background:${st.color}"></span>`).join('');
+  document.getElementById('completionLegend').innerHTML=statuses.map(st=>`<div class="completionLegendItem"><i class="legendDot" style="background:${st.color}"></i><span>${st.label}: ${counts[st.key]}</span></div>`).join('');
+  const top=[...games].filter(g=>Number(g.playtime)>0).sort((a,b)=>(Number(b.playtime)||0)-(Number(a.playtime)||0)).slice(0,5);
+  document.getElementById('mostPlayedList').innerHTML=top.length?top.map((g,i)=>`<div class="mostPlayedRow"><span class="mostPlayedRank">${i+1}</span><div class="mostPlayedCover">${g.cover?`<img src="${esc(g.cover)}" alt="" onerror="this.style.display='none'">`:'🎮'}</div><span class="mostPlayedName" title="${esc(g.name)}">${esc(g.name)}</span><span class="mostPlayedHours">${Number(g.playtime).toLocaleString('en-US',{maximumFractionDigits:1})}h</span></div>`).join(''):'<div style="color:#9da8bc;padding-top:25px">Add playtime to your games to see this list.</div>';
+}
+
+function renderInsights(){
+ const count=games.length;
+ const avg=count?games.reduce((a,g)=>a+score(g),0)/count:0;
+ const avgEl=document.getElementById('profileAverage'); if(avgEl)avgEl.textContent=count?avg.toFixed(1):'—';
+ const countEl=document.getElementById('profileGameCount');if(countEl)countEl.textContent=`بر اساس ${count.toLocaleString('fa-IR')} بازی`;
+ const profile=document.getElementById('profileBars');
+ if(profile){
+  profile.innerHTML=count?categories.map(([key,label])=>{const v=games.reduce((a,g)=>a+Number(g.ratings?.[key]??7),0)/count;return `<div class="profileBarRow"><span>${label}</span><div class="profileBar"><i style="width:${v*10}%"></i></div><b>${v.toFixed(1)}</b></div>`}).join(''):'<div class="empty" style="padding:25px">با ثبت بازی‌ها، تحلیل سلیقه‌ات اینجا نمایش داده می‌شود.</div>';
+ }
+ const hall=document.getElementById('hallGrid'); if(!hall)return;
+ if(!count){hall.innerHTML='<div class="empty" style="grid-column:1/-1;padding:30px">با ثبت بازی‌ها، تالار افتخاراتت ساخته می‌شود.</div>';return}
+ const winners=[];
+ const best=[...games].sort((a,b)=>score(b)-score(a))[0]; winners.push({g:best,label:'بالاترین امتیاز',metric:score(best).toFixed(1)+' / 10'});
+ const bestStory=[...games].sort((a,b)=>Number(b.ratings?.story??7)-Number(a.ratings?.story??7))[0];winners.push({g:bestStory,label:'بهترین داستان',metric:Number(bestStory.ratings?.story??7).toFixed(1)+' / 10'});
+ const bestGameplay=[...games].sort((a,b)=>Number(b.ratings?.gameplay??7)-Number(a.ratings?.gameplay??7))[0];winners.push({g:bestGameplay,label:'بهترین گیم‌پلی',metric:Number(bestGameplay.ratings?.gameplay??7).toFixed(1)+' / 10'});
+ const mostPlayed=[...games].sort((a,b)=>(Number(b.playtime)||0)-(Number(a.playtime)||0))[0];winners.push({g:mostPlayed,label:'بیشترین زمان بازی',metric:(Number(mostPlayed.playtime)||0).toLocaleString('fa-IR')+' ساعت'});
+ const fav=[...games].filter(g=>g.favorite).sort((a,b)=>score(b)-score(a))[0]; if(fav)winners.push({g:fav,label:'محبوب منتخب',metric:score(fav).toFixed(1)+' / 10'});
+ const tierS=[...games].filter(g=>(g.tier||'B')==='S').sort((a,b)=>score(b)-score(a))[0];if(tierS)winners.push({g:tierS,label:'Tier S',metric:score(tierS).toFixed(1)+' / 10'});
+ hall.innerHTML=winners.map(({g,label,metric})=>`<article class="hallCard" onclick="openDetail(${g.id})"><div class="hallCover">${g.cover?`<img src="${esc(g.cover)}" alt="" onerror="this.style.display='none'">`:'🎮'}</div><div class="hallInfo"><div class="hallLabel">${label}</div><div class="hallName" title="${esc(g.name)}">${esc(g.name)}</div><div class="hallMeta"><span>${metric}</span><span>مشاهده ←</span></div></div></article>`).join('');
+}
+
+function updateDashboard(){
+ if(!dashboardGridEl)return;
+ if(!games.length){dashboardGridEl.innerHTML='';return}
+ const totalHours=games.reduce((a,g)=>a+(Number(g.playtime)||0),0);
+ const totalSpend=games.reduce((a,g)=>a+(Number(g.price)||0),0);
+ const fav=games.filter(g=>g.favorite).length;
+ const statuses=[['در حال بازی','playing'],['تمام شده','completed'],['در لیست بازی','wishlist'],['رها شده','dropped'],['هنوز شروع نکردم','notstarted']];
+ const tiers=['S','A','B','C','D'];
+ const statusHtml=statuses.map(([label,key])=>{const n=games.filter(g=>(g.status||'notstarted')===key).length;return `<div class="dashLine"><span>${label}</span><div class="dashBar"><i style="width:${n/games.length*100}%"></i></div><b>${n}</b></div>`}).join('');
+ const tierHtml=tiers.map(key=>{const n=games.filter(g=>(g.tier||'B')===key).length;return `<div class="dashLine"><span>Tier ${key}</span><div class="dashBar"><i style="width:${n/games.length*100}%"></i></div><b>${n}</b></div>`}).join('');
+ dashboardGridEl.innerHTML=`
+ <div class="dashCard"><h3>⭐ محبوب‌های من</h3><div class="dashBig favStat">${fav}</div><small>از ${games.length} بازی</small></div>
+ <div class="dashCard"><h3>⏱ مجموع زمان بازی</h3><div class="dashBig">${totalHours.toLocaleString('fa-IR')}</div><small>ساعت</small></div>
+ <div class="dashCard"><h3>💰 مجموع هزینه</h3><div class="dashBig">${money(totalSpend)}</div><small>کل خریدها</small></div>
+ <div class="dashCard"><h3>🎯 میانگین امتیاز</h3><div class="dashBig">${(games.reduce((a,g)=>a+score(g),0)/games.length).toFixed(1)} / 10</div><small>بر اساس ${categories.length} معیار</small></div>
+ <div class="dashCard dashWide"><h3>وضعیت بازی‌ها</h3><div class="dashList">${statusHtml}</div></div>
+ <div class="dashCard dashWide"><h3>توزیع Tier شخصی</h3><div class="dashList">${tierHtml}</div></div>`;
+}
+function removeGame(id){if(confirm('این بازی از آرشیو حذف شود؟')){games=games.filter(g=>g.id!==id);localStorage.setItem('steamGameJournal',JSON.stringify(games));render()}}
+function clearAll(){if(games.length&&confirm('همه بازی‌ها حذف شوند؟ این کار قابل برگشت نیست.')){games=[];localStorage.removeItem('steamGameJournal');render()}}
+function esc(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+loadTheme();loadParticleDensity();makeRatings();document.getElementById('compareGameA')?.addEventListener('change',renderGameCompare);
+document.getElementById('compareGameB')?.addEventListener('change',renderGameCompare);
+render();
+</script>
+</body>
+</html>
